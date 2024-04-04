@@ -9,4 +9,5 @@ const { PORT } = process.env;
 export const envVariable = {
   PORT: PORT || 3000,
   PREFIX: "/api",
+  PREFIX_LOG: "/metrics",
 };

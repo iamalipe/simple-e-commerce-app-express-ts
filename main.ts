@@ -3,8 +3,17 @@ import compression from "compression";
 import morgan from "morgan";
 import helmet from "helmet";
 import cors from "cors";
+import client from "prom-client";
 import { corsOptions, defaultRateLimiter, envVariable } from "./config";
 import { mainRouter } from "./routers";
+import { metricsRoute } from "./config/prometheus";
+import { prometheusMiddleware } from "./middlewares";
+
+// Prometheus client
+const collectDefaultMetrics = client.collectDefaultMetrics;
+const Registry = client.Registry;
+const register = new Registry();
+collectDefaultMetrics({ register: register });
 
 const app: Express = express();
 
@@ -35,7 +44,9 @@ app.disable("etag");
 
 // Rate limiting is essential for maintaining the security, stability, and performance of web applications and APIs, especially in environments where resources are limited or costly.
 app.use(defaultRateLimiter);
+app.use(prometheusMiddleware);
 
+app.use(envVariable.PREFIX_LOG, metricsRoute);
 app.use(envVariable.PREFIX, mainRouter);
 
 app.listen(envVariable.PORT, () => {
